@@ -1,117 +1,75 @@
-# ⚡ ValOS — Interactive Developer Portfolio
+# ⚡ ValOS — Portfolio API
 
 <p align="center">
-  <img src="public/favicon.svg" width="60" alt="ValOS Logo" />
+  A Laravel 12 REST API powering the <a href="https://github.com/YOUR_USERNAME/val-portfolio">ValOS frontend portfolio</a>.
+  <br/>
+  Serves all portfolio content from MySQL and handles contact form submissions with branded email notifications.
 </p>
 
 <p align="center">
-  A macOS-inspired, fully interactive portfolio OS built with <strong>React + Vite</strong> on the frontend and <strong>Laravel 12</strong> on the backend — 100% database-driven, zero hardcoded content.
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" />
-  <img src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white" />
   <img src="https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white" />
+  <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?logo=php&logoColor=white" />
   <img src="https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white" />
-  <img src="https://img.shields.io/badge/TailwindCSS-4-38BDF8?logo=tailwindcss&logoColor=white" />
+  <img src="https://img.shields.io/badge/PHPUnit-11-3775A9?logo=phpunit&logoColor=white" />
   <img src="https://img.shields.io/badge/License-MIT-green" />
 </p>
 
 ---
 
-## 📸 Overview
+## 📋 Overview
 
-ValOS is a desktop-OS–themed portfolio for **Val Krystoper Abilo**, QA Engineer II. Visitors experience a full boot sequence, draggable windows, a taskbar, desktop icons, a right-click context menu, and a live clock — all running in the browser.
+The API has two responsibilities:
 
-Every piece of portfolio content — profile, experience, skills, projects, education, and awards — is fetched from a single `GET /api/portfolio` endpoint backed by MySQL. Update the database; the site reflects it instantly.
+1. **`GET /api/portfolio`** — Returns the entire portfolio payload in one request. The React frontend calls this once at boot and distributes data to all six window components.
+2. **`POST /api/contact`** — Saves contact form submissions to the database and sends a branded HTML email notification to Val.
 
----
-
-## ✨ Features
-
-| Feature | Details |
-|---|---|
-| 🖥️ **OS Desktop UX** | Draggable, resizable-feel windows; taskbar; desktop icons; boot animation |
-| ⚡ **Boot Screen** | Animated log-line boot sequence before the desktop appears |
-| 🗂️ **6 Window Apps** | Welcome · About (terminal) · Skills (test runner) · Experience (Jira board) · Projects (file explorer) · Contact (mail client) |
-| 📋 **Jira-Style Experience** | Work history displayed as expandable Jira issues with tags and bullets |
-| 🧪 **Jest-Style Skills** | Skills rendered as an animated test-runner with PASS/LEARN badges and progress bars |
-| 📁 **File Explorer Projects** | Project sidebar + detail panel with metadata, tags, and GitHub links |
-| 📧 **Mail Compose Contact** | Contact form posts to Laravel API; sends a branded HTML email notification |
-| 💻 **Terminal About** | Animated typewriter terminal with education, awards, and bio from the DB |
-| 📱 **Mobile Fallback** | Fully responsive non-JS fallback for screens ≤ 800px — all data from API |
-| 🔔 **Notification Toast** | Auto-dismissing "open to opportunities" notification |
-| 🖱️ **Context Menu** | Right-click desktop menu with quick links |
-| 🕐 **Live Clock** | PH locale time/date in the taskbar |
-| 🌐 **CORS-Ready** | Configured for local dev and Vercel prod origins |
-
----
-
-## 🏗️ Architecture
-
-```
-┌──────────────────────────────────────────────────────────┐
-│                     Browser (Vite + React)                │
-│  BootScreen → Desktop → Windows (6 apps) + Taskbar       │
-│             ↕ GET /api/portfolio (once at boot)           │
-└───────────────────────┬──────────────────────────────────┘
-                        │
-┌───────────────────────▼──────────────────────────────────┐
-│               Laravel 12 REST API                         │
-│  PortfolioController  │  ContactController                │
-│         ↕                      ↕                          │
-│              MySQL Database                               │
-│  profile · experiences · skill_suites · skills            │
-│  projects · project_meta · project_tags                   │
-│  education · awards · contacts                            │
-└──────────────────────────────────────────────────────────┘
-```
-
-### Data Flow
-
-1. On mount, `usePortfolioData` fires a single `GET /api/portfolio` request.
-2. The response is cached at module level — no duplicate fetches across navigation.
-3. All six window components receive their data via props from `Desktop.jsx`.
-4. The `ContactContent` window posts to `POST /api/contact`, which saves the message and sends a branded HTML email to Val.
+Everything is database-driven. To update portfolio content, edit the seeders and re-seed — no code changes required.
 
 ---
 
 ## 🗂️ Project Structure
 
 ```
-val-portfolio/          ← React + Vite frontend
-├── src/
-│   ├── App.jsx                  # Root: boot gate + data fetch
-│   ├── components/
-│   │   ├── Desktop.jsx          # Window manager + icons + taskbar
-│   │   ├── Window.jsx           # Draggable OS window shell
-│   │   ├── Taskbar.jsx          # Bottom bar with clock
-│   │   ├── BootScreen.jsx       # Animated boot log
-│   │   ├── ContextMenu.jsx      # Right-click menu
-│   │   ├── MobileFallback.jsx   # Mobile-only view
-│   │   └── windows/
-│   │       └── index.jsx        # All 6 window content components
-│   ├── data/
-│   │   └── index.js             # UI config only (boot msgs, icon labels, window sizes)
-│   ├── hooks/
-│   │   ├── useWindowManager.js  # Open/close/minimize/z-index state
-│   │   ├── useDraggable.js      # Mouse + touch drag logic
-│   │   └── usePortfolioData.js  # Single API fetch with cancel on unmount
-│   └── index.css                # Full ValOS design system (CSS vars + component classes)
-│
-portfolio-api/          ← Laravel 12 backend (same repo)
+portfolio-api/
 ├── app/
 │   ├── Http/Controllers/Api/
 │   │   ├── PortfolioController.php   # GET /api/portfolio
-│   │   └── ContactController.php     # POST /api/contact
-│   ├── Mail/ContactReceived.php      # Mailable
-│   └── Models/                       # 12 Eloquent models
+│   │   └── ContactController.php     # POST /api/contact + admin routes
+│   ├── Mail/
+│   │   └── ContactReceived.php       # Mailable class
+│   ├── Models/
+│   │   ├── Profile.php
+│   │   ├── Experience.php
+│   │   ├── ExperienceBullet.php
+│   │   ├── ExperienceTag.php
+│   │   ├── SkillSuite.php
+│   │   ├── Skill.php
+│   │   ├── Project.php
+│   │   ├── ProjectMeta.php
+│   │   ├── ProjectTag.php
+│   │   ├── Education.php
+│   │   ├── Award.php
+│   │   └── Contact.php
+│   └── Providers/AppServiceProvider.php
 ├── database/
-│   ├── migrations/              # Full schema (13 migration files)
-│   └── seeders/                 # 6 seeders — all real portfolio data
-├── resources/views/emails/      # Branded HTML + plain-text email templates
-├── routes/api.php               # All API routes
-└── config/cors.php              # CORS origins config
+│   ├── migrations/                   # 13 migration files
+│   └── seeders/
+│       ├── DatabaseSeeder.php        # Orchestrates all seeders
+│       ├── ProfileSeeder.php
+│       ├── ExperienceSeeder.php
+│       ├── SkillSeeder.php
+│       ├── ProjectSeeder.php
+│       ├── EducationSeeder.php
+│       └── AwardSeeder.php
+├── resources/views/emails/
+│   ├── contact-received.blade.php       # Branded HTML email
+│   └── contact-received-text.blade.php  # Plain-text fallback
+├── routes/
+│   └── api.php
+├── config/
+│   ├── cors.php                      # CORS origins
+│   └── mail.php                      # Mail config + portfolio recipient
+└── bootstrap/app.php                 # CORS middleware registration
 ```
 
 ---
@@ -122,39 +80,34 @@ portfolio-api/          ← Laravel 12 backend (same repo)
 
 | Tool | Version |
 |---|---|
-| Node.js | ≥ 20 |
 | PHP | ≥ 8.2 |
 | Composer | ≥ 2 |
-| MySQL | ≥ 8 (via XAMPP or native) |
+| MySQL | ≥ 8 |
+| XAMPP / Laragon / native MySQL | any |
 
----
-
-### 1 · Clone the Repository
-
-```bash
-git clone https://github.com/YOUR_USERNAME/val-portfolio.git
-cd val-portfolio
-```
-
----
-
-### 2 · Backend Setup (Laravel API)
+### Install
 
 ```bash
-# Install PHP dependencies
+# 1. Clone
+git clone https://github.com/YOUR_USERNAME/portfolio-api.git
+cd portfolio-api
+
+# 2. Install PHP dependencies
 composer install
 
-# Copy environment file
+# 3. Copy environment file
 cp .env.example .env
 
-# Generate app key
+# 4. Generate app key
 php artisan key:generate
 ```
 
-**Configure `.env`** — update these values:
+### Configure `.env`
 
 ```dotenv
 APP_NAME=ValOS
+APP_ENV=local
+APP_DEBUG=true
 APP_URL=http://localhost:8000
 
 DB_CONNECTION=mysql
@@ -164,7 +117,7 @@ DB_DATABASE=val_portfolio
 DB_USERNAME=root
 DB_PASSWORD=
 
-# Email — use Gmail App Password or Mailtrap for dev
+# Email notification settings
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
@@ -176,10 +129,12 @@ MAIL_FROM_NAME="ValOS Portfolio"
 MAIL_PORTFOLIO_RECIPIENT=abilovalkrystoper@gmail.com
 ```
 
-**Create the database, run migrations and seed:**
+> **Tip:** Use Mailtrap (`MAIL_MAILER=log`) during development to skip real email sending. Messages will be written to `storage/logs/laravel.log`.
+
+### Set Up the Database
 
 ```bash
-# Create the MySQL database first (or use XAMPP phpMyAdmin)
+# Create the database (or use phpMyAdmin)
 mysql -u root -e "CREATE DATABASE val_portfolio;"
 
 # Run all migrations
@@ -190,48 +145,8 @@ php artisan db:seed
 
 # Start the API server
 php artisan serve
-# → Running at http://localhost:8000
+# → http://localhost:8000
 ```
-
----
-
-### 3 · Frontend Setup (React + Vite)
-
-```bash
-# Install JS dependencies
-npm install
-
-# Start the dev server
-npm run dev
-# → Running at http://localhost:5173
-```
-
-The frontend reads `VITE_API_URL` from `.env` (already set to `http://localhost:8000`).
-
----
-
-### 4 · Visit the Portfolio
-
-Open **http://localhost:5173** — you'll see the ValOS boot screen, then the interactive desktop.
-
----
-
-## 🗄️ Database Schema
-
-| Table | Purpose |
-|---|---|
-| `profile` | Name, role, bio, contact info, availability flag |
-| `experiences` | Work history (issue key, title, location, status, date range) |
-| `experience_bullets` | Bullet points per experience |
-| `experience_tags` | Skill tags per experience |
-| `skill_suites` | Skill category groups (QA, API, Tools, Dev Stack) |
-| `skills` | Individual skills with percentage and pass/warn tag |
-| `projects` | Project cards (key, icon, name, type, description, GitHub URL) |
-| `project_meta` | Key-value metadata per project (status, coverage, etc.) |
-| `project_tags` | Technology tags per project |
-| `education` | Degree, certifications, training entries |
-| `awards` | Awards and recognition |
-| `contacts` | Contact form submissions |
 
 ---
 
@@ -239,159 +154,287 @@ Open **http://localhost:5173** — you'll see the ValOS boot screen, then the in
 
 Base URL: `http://localhost:8000/api`
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/portfolio` | Returns complete portfolio payload (profile, education, awards, experiences, skillSuites, projects) |
-| `POST` | `/contact` | Saves contact form submission and sends email notification |
-| `GET` | `/contacts` | List all contact submissions |
-| `PATCH` | `/contacts/{id}/read` | Mark a message as read |
-| `GET` | `/health` | API health check |
+### `GET /api/portfolio`
 
-### `/api/portfolio` Response Shape
+Returns the complete portfolio payload. Called once by the React frontend at boot.
+
+**Response:**
 
 ```json
 {
-  "profile": { "name": "...", "role": "...", "bio": "...", "location": "...", "email": "...", "phone": "...", "linkedin_url": "...", "github_url": "...", "available": true },
-  "education": [ { "type": "degree|certification|training", "title": "...", "institution": "...", "year": "..." } ],
-  "awards": [ { "title": "...", "issuer": "...", "year": "..." } ],
-  "experiences": [ { "key": "VK-003", "title": "...", "sub": "...", "status": "progress|done", "type": "FULL-TIME", "date": "...", "bullets": [], "tags": [] } ],
-  "skillSuites": [ { "id": "qa", "label": "...", "countText": "...", "tests": [ { "name": "...", "pct": 100, "tag": "pass|warn" } ] } ],
-  "projects": [ { "id": "p1", "icon": "🌐", "name": "...", "label": "...", "type": "...", "desc": "...", "github": "...", "meta": [], "tags": [] } ]
+  "profile": {
+    "name": "Val Krystoper Abilo",
+    "role": "QA Engineer II",
+    "bio": "...",
+    "location": "Manggahan, Pasig City, PH",
+    "email": "abilovalkrystoper@gmail.com",
+    "phone": "+63 947 809 2197",
+    "linkedin_url": "https://linkedin.com/in/...",
+    "github_url": "https://github.com/...",
+    "available": true
+  },
+  "education": [
+    { "type": "degree", "title": "BS Computer Engineering", "institution": "ICCT Colleges Inc.", "year": "2013" }
+  ],
+  "awards": [
+    { "title": "Top 1 · KodeGo Best Capstone", "issuer": "KodeGo Bootcamp", "year": "2023" }
+  ],
+  "experiences": [
+    {
+      "key": "VK-003",
+      "title": "Quality Assurance Engineer II · Thurston Software Solutions Inc.",
+      "sub": "📍 5F F. Blumentrit, San Juan, Metro Manila",
+      "status": "progress",
+      "type": "FULL-TIME",
+      "date": "Apr 14, 2025 → Present",
+      "bullets": ["..."],
+      "tags": ["Test Plans", "Regression", "..."]
+    }
+  ],
+  "skillSuites": [
+    {
+      "id": "qa",
+      "label": "Testing · QA & Manual",
+      "countText": "6 passed",
+      "tests": [
+        { "name": "Manual Testing", "pct": 100, "tag": "pass" }
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "p1",
+      "icon": "🌐",
+      "name": "opencart-test-suite",
+      "label": "opencart-suite",
+      "type": "WEB APPLICATION TESTING · MANUAL",
+      "desc": "...",
+      "github": "https://github.com/...",
+      "meta": [["Status", "● Active", true], ["Coverage", "92%", true]],
+      "tags": ["Manual Testing", "Excel", "Bug Reports"]
+    }
+  ]
 }
 ```
 
 ---
 
-## 🎨 Design System
+### `POST /api/contact`
 
-All styles live in `src/index.css` using CSS custom properties:
+Saves a contact form submission and sends an email notification to Val.
 
-```css
---os-bg:       #05050F    /* Desktop background */
---win-bg:      rgba(9,9,22,0.97)  /* Window background */
---border:      rgba(255,255,255,0.07)
---border-act:  rgba(0,229,255,0.25)  /* Active window border */
---cyan:        #00E5FF    /* Primary accent */
---green:       #00FF88    /* Success / available */
---red:         #FF4466    /* Error / close button */
---amber:       #FFB800    /* Warning / minimize */
---text:        #C8D8F0
---text-dim:    #4A6080
---text-bright: #E8F4FF
---mono:        'JetBrains Mono', monospace
+**Request body:**
+
+```json
+{
+  "name":    "Jane Doe",
+  "email":   "jane@example.com",
+  "subject": "Job opportunity",
+  "message": "Hi Val, I'd like to discuss..."
+}
 ```
 
----
+**Validation rules:**
 
-## 📦 Building for Production
-
-### Frontend
-
-```bash
-npm run build
-# Output → dist/
-```
-
-### Backend
-
-```bash
-php artisan config:cache
-php artisan route:cache
-php artisan optimize
-```
-
-**Update CORS for production** in `config/cors.php`:
-
-```php
-'allowed_origins' => [
-    'https://YOUR-APP.vercel.app',
-],
-```
-
----
-
-## 🔧 Customization
-
-All portfolio content lives in the **database seeders**. To update:
-
-| What to change | File |
+| Field | Rules |
 |---|---|
-| Name, bio, contact info | `database/seeders/ProfileSeeder.php` |
-| Work experience | `database/seeders/ExperienceSeeder.php` |
-| Skills | `database/seeders/SkillSeeder.php` |
-| Projects | `database/seeders/ProjectSeeder.php` |
-| Education | `database/seeders/EducationSeeder.php` |
+| `name` | required, string, max:100 |
+| `email` | required, valid email, max:255 |
+| `subject` | required, string, max:200 |
+| `message` | required, string |
+
+**Success response `201`:**
+
+```json
+{ "message": "Message received!" }
+```
+
+---
+
+### Other Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/contacts` | List all contact submissions |
+| `PATCH` | `/api/contacts/{id}/read` | Mark a message as read |
+| `GET` | `/api/health` | Health check — returns status, service name, timestamp |
+
+---
+
+## 🗄️ Database Schema
+
+### Tables
+
+| Table | Description |
+|---|---|
+| `profile` | Single row — name, role, bio, contact info, availability |
+| `experiences` | Work history entries (issue key, title, location, status, dates) |
+| `experience_bullets` | Bullet points per experience (FK → experiences) |
+| `experience_tags` | Skill tags per experience (FK → experiences) |
+| `skill_suites` | Skill category groups (QA, API, Tools, Dev Stack) |
+| `skills` | Individual skills with percentage and pass/warn tag (FK → skill_suites) |
+| `projects` | Project cards with icon, name, type, description, GitHub URL |
+| `project_meta` | Key-value metadata rows per project (FK → projects) |
+| `project_tags` | Technology tags per project (FK → projects) |
+| `education` | Degrees, certifications, and training entries |
+| `awards` | Awards and recognition |
+| `contacts` | Contact form submissions with `read_at` timestamp |
+
+### Entity Relationships
+
+```
+profile           (1 row)
+
+experiences 1──* experience_bullets
+            1──* experience_tags
+
+skill_suites 1──* skills
+
+projects 1──* project_meta
+         1──* project_tags
+```
+
+---
+
+## 📝 Updating Portfolio Content
+
+All content is managed through seeders. No code changes needed — just edit the seeder and re-run.
+
+| Content | Seeder File |
+|---|---|
+| Name, bio, contact info, availability | `database/seeders/ProfileSeeder.php` |
+| Work experience, bullets, tags | `database/seeders/ExperienceSeeder.php` |
+| Skill suites and individual skills | `database/seeders/SkillSeeder.php` |
+| Projects, metadata, tags | `database/seeders/ProjectSeeder.php` |
+| Education entries | `database/seeders/EducationSeeder.php` |
 | Awards | `database/seeders/AwardSeeder.php` |
 
-After editing, re-seed:
+**Re-seed a single seeder:**
 
 ```bash
 php artisan db:seed --class=ProfileSeeder
-# or re-seed everything:
+```
+
+**Full re-seed (wipes and re-creates all data):**
+
+```bash
 php artisan migrate:fresh --seed
+```
+
+---
+
+## 📧 Email Notifications
+
+When a contact form is submitted, `ContactController` saves the record first, then attempts to send via `ContactReceived` mailable.
+
+- **To:** `MAIL_PORTFOLIO_RECIPIENT` in `.env`
+- **Reply-To:** Set to the sender's email — just hit reply to respond
+- **Template:** `resources/views/emails/contact-received.blade.php` (dark-themed HTML)
+- **Fallback:** Plain-text version at `contact-received-text.blade.php`
+- **Failure handling:** If email sending fails, the contact is still saved and the API returns `201`. The error is logged to `storage/logs/laravel.log`.
+
+**Test with Mailtrap (dev):**
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_HOST=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your_mailtrap_user
+MAIL_PASSWORD=your_mailtrap_pass
+```
+
+---
+
+## 🔒 CORS Configuration
+
+Managed in `config/cors.php`. Update `allowed_origins` before deploying:
+
+```php
+'allowed_origins' => [
+    'http://localhost:5173',       // Local Vite dev server
+    'https://YOUR-APP.vercel.app', // Production frontend
+],
+```
+
+CORS middleware is registered in `bootstrap/app.php`:
+
+```php
+$middleware->api(prepend: [
+    \Illuminate\Http\Middleware\HandleCors::class,
+]);
 ```
 
 ---
 
 ## 🧪 Testing
 
-### Backend (PHPUnit)
-
 ```bash
+# Run the PHPUnit test suite
 php artisan test
+
+# Run with coverage (requires Xdebug or PCOV)
+php artisan test --coverage
 ```
 
-### Frontend (Playwright — E2E)
-
-```bash
-npx playwright test
-```
+Tests live in `tests/Feature/` and `tests/Unit/`. The test environment uses an in-memory SQLite database (configured in `phpunit.xml`).
 
 ---
 
 ## 🚢 Deployment
 
-### Frontend → Vercel
+### Production `.env` checklist
 
-1. Push to GitHub
-2. Import repo in Vercel
-3. Set environment variable: `VITE_API_URL=https://your-api-domain.com`
-4. Build command: `npm run build` · Output: `dist`
+```dotenv
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-api-domain.com
 
-### Backend → Any PHP Host (Hostinger, Railway, etc.)
+DB_CONNECTION=mysql
+# ... production DB credentials
 
-1. Upload files, run `composer install --no-dev`
-2. Set `.env` production values
-3. `php artisan migrate --force && php artisan db:seed --force`
-4. Point document root to `/public`
+MAIL_MAILER=smtp
+# ... production SMTP credentials
+```
 
----
+### Optimize for production
 
-## 📁 Tech Stack
+```bash
+composer install --no-dev --optimize-autoloader
+php artisan config:cache
+php artisan route:cache
+php artisan optimize
+```
 
-**Frontend**
-- React 19 + Vite 8
-- Tailwind CSS 4
-- Axios
-- JetBrains Mono (Google Fonts)
+### Document root
 
-**Backend**
-- Laravel 12
-- MySQL 8
-- Laravel Mail (SMTP)
-- PHPUnit 11
+Point your web server to the `/public` directory.
 
 ---
 
-## 🤝 Contributing
+## 📦 Key Dependencies
 
-This is a personal portfolio project. Feel free to fork it and adapt it for your own use — just update the seeder data with your own information.
+```json
+"require": {
+  "php":              "^8.2",
+  "laravel/framework": "^12.0",
+  "laravel/tinker":   "^2.10"
+},
+"require-dev": {
+  "fakerphp/faker":       "^1.23",
+  "laravel/pail":         "^1.2",
+  "laravel/pint":         "^1.24",
+  "laravel/sail":         "^1.41",
+  "mockery/mockery":      "^1.6",
+  "nunomaduro/collision": "^8.6",
+  "phpunit/phpunit":      "^11.5"
+}
+```
 
 ---
 
-## 📄 License
+## 🔗 Related
 
-MIT License — see [LICENSE](LICENSE) for details.
+- **Frontend:** [val-portfolio](https://github.com/YOUR_USERNAME/val-portfolio) — React + Vite OS-themed portfolio
 
 ---
 
