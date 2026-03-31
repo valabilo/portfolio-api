@@ -38,7 +38,7 @@ class ContactController extends Controller
 
         // 2 — Send notification email to Val
         try {
-            Mail::to(env('MAIL_PORTFOLIO_RECIPIENT'))
+            Mail::to(config('mail.portfolio_recipient'))
                 ->send(new ContactReceived($contact));
         } catch (\Throwable $e) {
             // Log the error but don't fail the API response.

@@ -45,7 +45,7 @@ class ContactReceived extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.contact-received',
+            html: 'emails.contact-received',
             text: 'emails.contact-received-text',
         );
     }
