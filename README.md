@@ -434,7 +434,7 @@ Point your web server to the `/public` directory.
 
 ## 🔗 Related
 
-- **Frontend:** [val-portfolio](https://github.com/YOUR_USERNAME/val-portfolio) — React + Vite OS-themed portfolio
+- **Frontend:** [val-portfolio](https://github.com/valabilo/val-portfolio) — React + Vite OS-themed portfolio
 
 ---
 
