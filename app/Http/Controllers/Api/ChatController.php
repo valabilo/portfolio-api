@@ -74,7 +74,7 @@ class ChatController extends Controller
             ->toArray();
 
         // 3 ── Call Gemini API ────────────────────────────────────────
-        $model    = config('services.gemini.model', 'gemini-2.0-flash');
+        $model    = config('services.gemini.model', 'gemini-3-flash-preview');
         $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
         $response = Http::timeout(30)
@@ -182,13 +182,13 @@ EOT;
         )->implode("\n");
 
         return <<<PROMPT
-You are the AI representative of {$profile->name}, a professional QA Engineer.
+You are the AI representative of {$profile->name}, a professional QA Tester.
 Your role is to answer questions from recruiters, hiring managers, clients, and
 collaborators who are visiting Val's interactive portfolio website (ValOS).
 
 Speak on Val's behalf — use first person ("I", "my", "I have") as if you ARE Val.
 Be professional, concise, confident, and honest.
-Only use the data provided below — do not invent any information.
+Only use the data provided below — do not invent any information. Avoid adding special characters or formatting that isn't in the source data. If you don't know the answer, say "I don't have that information. You can send an email to {$profile->email} to answer that question. I will get back to you as soon as possible."
 Keep answers under 150 words unless a detailed explanation is genuinely needed.
 Do not mention that you are an AI or that you are reading from a database.
 Do not use closing sign-offs like "Best regards" or "Feel free to ask".
